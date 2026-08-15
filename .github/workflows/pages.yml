@@ -64,7 +64,7 @@ jobs:
           assert "VSTEP Writing Task 2" in task2
           assert "scoreWriting" in practice
           assert "Submit & Auto-score" in practice
-          assert "Detailed Correction" in practice
+          assert "Revised Draft" in practice
 
           (out / ".nojekyll").write_text("", encoding="utf-8")
           print(f"Speaking: {len(speaking):,} chars")
