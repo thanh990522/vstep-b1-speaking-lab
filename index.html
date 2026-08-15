@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VSTEP B1 Hobbies Speaking Lab</title>
+<style>
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f6ff;color:#252642}body{display:grid;place-items:center}.loader{width:min(560px,88vw);padding:34px;border:1px solid #e1e4f4;border-radius:26px;background:white;box-shadow:0 20px 60px rgba(70,72,130,.12);text-align:center}.orb{width:72px;height:72px;border-radius:24px;margin:0 auto 18px;display:grid;place-items:center;background:linear-gradient(135deg,#6559e8,#8b5cf6,#06b6d4);color:white;font-size:32px;box-shadow:0 14px 30px rgba(101,89,232,.25);animation:pulse 1.2s infinite alternate}.bar{height:8px;background:#eceef7;border-radius:99px;overflow:hidden;margin-top:20px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6559e8,#8b5cf6,#06b6d4);transition:.2s}.small{font-size:12px;color:#7b8197;margin-top:10px}@keyframes pulse{to{transform:translateY(-5px)}}
+</style>
+</head>
+<body>
+<div class="loader"><div class="orb">🎙️</div><h2>VSTEP B1 Speaking Lab</h2><p>Đang tải Speaking Lab và AI scoring…</p><div class="bar"><i id="bar"></i></div><div class="small" id="status">Preparing website…</div></div>
+<script>
+(async()=>{
+  const parts=Array.from({length:21},(_,i)=>`site/part${String(i+1).padStart(2,'0')}.txt`);
+  let html='';
+  try{
+    for(let i=0;i<parts.length;i++){
+      const r=await fetch(parts[i],{cache:'no-cache'});
+      if(!r.ok) throw new Error(`Missing ${parts[i]}`);
+      html+=await r.text();
+      document.getElementById('bar').style.width=((i+1)/parts.length*100)+'%';
+      document.getElementById('status').textContent=`Loading ${i+1}/${parts.length}…`;
+    }
+    document.open();document.write(html);document.close();
+  }catch(e){
+    document.querySelector('.loader').innerHTML='<div class="orb">⚠️</div><h2>Không tải được website</h2><p>'+e.message+'</p><div class="small">Hãy refresh trang hoặc kiểm tra kết nối.</div>';
+  }
+})();
+</script>
+</body>
+</html>
