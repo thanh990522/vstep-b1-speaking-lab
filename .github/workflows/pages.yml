@@ -1,4 +1,4 @@
-name: Deploy VSTEP Speaking Lab
+name: Deploy VSTEP Learning Labs
 
 on:
   push:
@@ -21,29 +21,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build single-file website
+      - name: Build Speaking and Writing websites
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import base64, gzip
-
-          parts = []
-          for i in range(1, 13):
-              p = Path(f"site/part{i:02d}.txt")
-              parts.append(p.read_text(encoding="utf-8").strip())
-          payload = "".join(parts)
-          html = gzip.decompress(base64.b64decode(payload)).decode("utf-8")
+          import base64, gzip, shutil
 
           out = Path("_site")
           out.mkdir(exist_ok=True)
-          (out / "index.html").write_text(html, encoding="utf-8")
-          (out / ".nojekyll").write_text("", encoding="utf-8")
 
-          print(f"Built index.html: {len(html):,} characters")
-          assert "VSTEP" in html
-          assert "big-mic-btn" in html
-          assert "scoreResponse" in html
+          # Speaking root — preserve the existing app exactly.
+          parts = [
+              Path(f"site/part{i:02d}.txt").read_text(encoding="utf-8").strip()
+              for i in range(1, 13)
+          ]
+          speaking = gzip.decompress(base64.b64decode("".join(parts))).decode("utf-8")
+          (out / "index.html").write_text(speaking, encoding="utf-8")
+          assert "VSTEP" in speaking
+          assert "big-mic-btn" in speaking
+          assert "scoreResponse" in speaking
+
+          # Writing suite dashboard.
+          wout = out / "writing"
+          wout.mkdir(exist_ok=True)
+          shutil.copy2("writing/index.html", wout / "index.html")
+
+          def unpack(prefix, count, target):
+              payload = "".join(
+                  Path(f"writing-src/{prefix}-{i:02d}.txt").read_text(encoding="utf-8").strip()
+                  for i in range(1, count + 1)
+              )
+              page = gzip.decompress(base64.b64decode(payload)).decode("utf-8")
+              (wout / target).write_text(page, encoding="utf-8")
+              return page
+
+          task1 = unpack("task1", 2, "task1-theory.html")
+          task2 = unpack("task2", 2, "task2-theory.html")
+          practice = unpack("practice", 4, "practice.html")
+
+          assert "VSTEP Writing Task 1" in task1
+          assert "VSTEP Writing Task 2" in task2
+          assert "scoreWriting" in practice
+          assert "Submit & Auto-score" in practice
+          assert "Detailed Correction" in practice
+
+          (out / ".nojekyll").write_text("", encoding="utf-8")
+          print(f"Speaking: {len(speaking):,} chars")
+          print(f"Writing Task 1: {len(task1):,} chars")
+          print(f"Writing Task 2: {len(task2):,} chars")
+          print(f"Writing Practice: {len(practice):,} chars")
           PY
 
       - name: Configure Pages
