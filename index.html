@@ -12,20 +12,32 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe U
 <div class="loader"><div class="orb">🎙️</div><h2>VSTEP B1 Speaking Lab</h2><p>Đang tải Speaking Lab và AI scoring…</p><div class="bar"><i id="bar"></i></div><div class="small" id="status">Preparing website…</div></div>
 <script>
 (async()=>{
-  const parts=Array.from({length:21},(_,i)=>`site/part${String(i+1).padStart(2,'0')}.txt`);
-  let html='';
-  try{
-    for(let i=0;i<parts.length;i++){
-      const r=await fetch(parts[i],{cache:'no-cache'});
-      if(!r.ok) throw new Error(`Missing ${parts[i]}`);
-      html+=await r.text();
-      document.getElementById('bar').style.width=((i+1)/parts.length*100)+'%';
-      document.getElementById('status').textContent=`Loading ${i+1}/${parts.length}…`;
-    }
-    document.open();document.write(html);document.close();
-  }catch(e){
-    document.querySelector('.loader').innerHTML='<div class="orb">⚠️</div><h2>Không tải được website</h2><p>'+e.message+'</p><div class="small">Hãy refresh trang hoặc kiểm tra kết nối.</div>';
-  }
+ const parts=Array.from({length:12},(_,i)=>`site/part${String(i+1).padStart(2,'0')}.txt`);
+ const barEl=document.getElementById('bar');
+ const statusEl=document.getElementById('status');
+ let b64='';
+ try{
+   for(let i=0;i<parts.length;i++){
+     const r=await fetch(parts[i],{cache:'no-cache'});
+     if(!r.ok) throw new Error(`Missing ${parts[i]}`);
+     b64+=(await r.text()).trim();
+     barEl.style.width=((i+1)/parts.length*80)+'%';
+     statusEl.textContent=`Loading ${i+1}/${parts.length}…`;
+   }
+   const bin=atob(b64);
+   const bytes=new Uint8Array(bin.length);
+   for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+   statusEl.textContent='Decompressing website…';
+   barEl.style.width='90%';
+   if(!('DecompressionStream' in window)) throw new Error('Browser does not support DecompressionStream. Please use a recent Chrome or Edge browser.');
+   const ds=new DecompressionStream('gzip');
+   const stream=new Blob([bytes]).stream().pipeThrough(ds);
+   const html=await new Response(stream).text();
+   barEl.style.width='100%';
+   document.open();document.write(html);document.close();
+ }catch(e){
+   document.querySelector('.loader').innerHTML='<div class="orb">⚠️</div><h2>Không tải được website</h2><p>'+e.message+'</p><div class="small">Hãy refresh trang hoặc dùng Chrome/Edge phiên bản mới.</div>';
+ }
 })();
 </script>
 </body>
