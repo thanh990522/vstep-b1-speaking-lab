@@ -38,12 +38,17 @@ jobs:
           ]
           speaking = gzip.decompress(base64.b64decode("".join(parts))).decode("utf-8")
 
-          # Inject the cross-browser microphone fix after the original app script,
-          # so it becomes the final mic handler without rewriting the content payload.
+          # Inject cross-browser mic fix first, then transcript/scoring presentation patch last.
           mic_patch = Path("patches/mic-recorder-fix.js").read_text(encoding="utf-8")
+          transcript_patch = Path("patches/transcript-review-fix.js").read_text(encoding="utf-8")
           marker = "</body>"
           assert marker in speaking
-          speaking = speaking.replace(marker, f'<script id="mic-recorder-fix">\n{mic_patch}\n</script>\n</body>', 1)
+          injected = (
+              f'<script id="mic-recorder-fix">\n{mic_patch}\n</script>\n'
+              f'<script id="transcript-review-fix">\n{transcript_patch}\n</script>\n'
+              '</body>'
+          )
+          speaking = speaking.replace(marker, injected, 1)
 
           (out / "index.html").write_text(speaking, encoding="utf-8")
           assert "VSTEP" in speaking
@@ -53,6 +58,10 @@ jobs:
           assert "downloadRecording" in speaking
           assert "mediaRecorder.start(1000)" in speaking
           assert "indexedDB.open('vstep-speaking-recordings'" in speaking
+          assert "transcript-review-fix" in speaking
+          assert "Browser Speech Recognition" in speaking
+          assert "Transcript & sửa trực tiếp sau khi chấm" in speaking
+          assert "__vstepTranscriptDiagnostics" in speaking
 
           # Writing suite dashboard.
           wout = out / "writing"
@@ -89,6 +98,11 @@ jobs:
         shell: bash
         run: |
           node --check patches/mic-recorder-fix.js
+
+      - name: Check transcript review JavaScript
+        shell: bash
+        run: |
+          node --check patches/transcript-review-fix.js
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
