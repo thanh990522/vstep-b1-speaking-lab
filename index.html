@@ -1,43 +1,52 @@
+---
+layout: null
+---
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6559e8">
 <title>VSTEP B1 Hobbies Speaking Lab</title>
 <style>
-html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f6ff;color:#252642}body{display:grid;place-items:center}.loader{width:min(560px,88vw);padding:34px;border:1px solid #e1e4f4;border-radius:26px;background:white;box-shadow:0 20px 60px rgba(70,72,130,.12);text-align:center}.orb{width:72px;height:72px;border-radius:24px;margin:0 auto 18px;display:grid;place-items:center;background:linear-gradient(135deg,#6559e8,#8b5cf6,#06b6d4);color:white;font-size:32px;box-shadow:0 14px 30px rgba(101,89,232,.25);animation:pulse 1.2s infinite alternate}.bar{height:8px;background:#eceef7;border-radius:99px;overflow:hidden;margin-top:20px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6559e8,#8b5cf6,#06b6d4);transition:.2s}.small{font-size:12px;color:#7b8197;margin-top:10px}@keyframes pulse{to{transform:translateY(-5px)}}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f6ff;color:#252642}body{display:grid;place-items:center}.loader{width:min(560px,88vw);padding:34px;border:1px solid #e1e4f4;border-radius:26px;background:white;box-shadow:0 20px 60px rgba(70,72,130,.12);text-align:center}.orb{width:72px;height:72px;border-radius:24px;margin:0 auto 18px;display:grid;place-items:center;background:linear-gradient(135deg,#6559e8,#8b5cf6,#06b6d4);color:white;font-size:32px;box-shadow:0 14px 30px rgba(101,89,232,.25);animation:pulse 1.2s infinite alternate}.bar{height:8px;background:#eceef7;border-radius:99px;overflow:hidden;margin-top:20px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6559e8,#8b5cf6,#06b6d4);transition:.25s}.small{font-size:12px;color:#7b8197;margin-top:10px;line-height:1.5}@keyframes pulse{to{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
-<div class="loader"><div class="orb">🎙️</div><h2>VSTEP B1 Speaking Lab</h2><p>Đang tải Speaking Lab và AI scoring…</p><div class="bar"><i id="bar"></i></div><div class="small" id="status">Preparing website…</div></div>
+<div class="loader" id="loader"><div class="orb">🎙️</div><h2>VSTEP B1 Speaking Lab</h2><p>Đang mở Speaking Lab và AI scoring…</p><div class="bar"><i id="bar"></i></div><div class="small" id="status">Website đã được đóng gói trong trang này — không tải source từ bên ngoài.</div></div>
+
+<!-- GitHub Pages/Jekyll embeds the complete compressed app into this HTML at BUILD TIME. -->
+<script type="text/plain" id="appPayload">
+{% include_relative site/part01.txt %}
+{% include_relative site/part02.txt %}
+{% include_relative site/part03.txt %}
+{% include_relative site/part04.txt %}
+{% include_relative site/part05.txt %}
+{% include_relative site/part06.txt %}
+{% include_relative site/part07.txt %}
+{% include_relative site/part08.txt %}
+{% include_relative site/part09.txt %}
+{% include_relative site/part10.txt %}
+{% include_relative site/part11.txt %}
+{% include_relative site/part12.txt %}
+</script>
 <script>
 (async()=>{
- const base='https://raw.githubusercontent.com/thanh990522/vstep-b1-speaking-lab/main/site/';
- const parts=Array.from({length:12},(_,i)=>base+`part${String(i+1).padStart(2,'0')}.txt?v=2`);
- const barEl=document.getElementById('bar');
- const statusEl=document.getElementById('status');
- let b64='';
+ const bar=document.getElementById('bar'), status=document.getElementById('status');
  try{
-   for(let i=0;i<parts.length;i++){
-     statusEl.textContent=`Loading ${i+1}/${parts.length}…`;
-     const r=await fetch(parts[i],{cache:'no-store',mode:'cors'});
-     if(!r.ok) throw new Error(`Không tải được dữ liệu ${i+1}/12 (HTTP ${r.status})`);
-     b64+=(await r.text()).trim();
-     barEl.style.width=((i+1)/parts.length*80)+'%';
-   }
-   const bin=atob(b64);
-   const bytes=new Uint8Array(bin.length);
+   bar.style.width='25%';status.textContent='Đang đọc dữ liệu Speaking Lab…';
+   const payload=document.getElementById('appPayload').textContent.replace(/\s+/g,'');
+   if(!payload || payload.includes('{%')) throw new Error('GitHub Pages chưa xử lý dữ liệu website.');
+   bar.style.width='55%';status.textContent='Đang giải nén ứng dụng…';
+   if(!('DecompressionStream' in window)) throw new Error('Trình duyệt chưa hỗ trợ DecompressionStream. Hãy dùng Chrome hoặc Edge phiên bản mới.');
+   const bin=atob(payload), bytes=new Uint8Array(bin.length);
    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-   statusEl.textContent='Đang mở website…';
-   barEl.style.width='90%';
-   if(!('DecompressionStream' in window)) throw new Error('Trình duyệt chưa hỗ trợ giải nén. Vui lòng dùng Chrome/Edge bản mới.');
    const ds=new DecompressionStream('gzip');
-   const stream=new Blob([bytes]).stream().pipeThrough(ds);
-   const html=await new Response(stream).text();
-   barEl.style.width='100%';
+   const html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+   bar.style.width='100%';status.textContent='Hoàn tất.';
    document.open();document.write(html);document.close();
  }catch(e){
-   document.querySelector('.loader').innerHTML='<div class="orb">⚠️</div><h2>Không tải được website</h2><p>'+e.message+'</p><div class="small">Hãy refresh trang. Nếu vẫn lỗi, thử Chrome/Edge và tắt VPN/ad blocker tạm thời.</div>';
+   document.getElementById('loader').innerHTML='<div class="orb">⚠️</div><h2>Không mở được website</h2><p>'+String(e.message||e)+'</p><div class="small">Bản này không dùng fetch(). Nếu vẫn lỗi, chụp lại thông báo này để mình xác định đúng bước bị lỗi.</div>';
  }
 })();
 </script>
